@@ -102,8 +102,9 @@ GSVPANO.PanoLoader = function (parameters) {
           if (status === google.maps.StreetViewStatus.OK) {
               if( self.onPanoramaData ) self.onPanoramaData( result );
 
-              //var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
-              //rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
+              var lat1 = result.location.latLng.lat();
+              var lon1 = result.location.latLng.lng();
+
               copyright = result.copyright;
               self.copyright = result.copyright;
               _panoId = result.location.pano;
@@ -130,8 +131,12 @@ GSVPANO.PanoLoader = function (parameters) {
             if (status === google.maps.StreetViewStatus.OK) {
                 if( self.onPanoramaData ) self.onPanoramaData( result );
 
-                //var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
-                //rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
+              var lat = location.lat();
+              var lon = location.lng();
+              var lat1 = result.location.latLng.lat();
+              var lon1 = result.location.latLng.lng();
+              var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
+                rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
                 copyright = result.copyright;
                 self.copyright = result.copyright;
                 _panoId = result.location.pano;

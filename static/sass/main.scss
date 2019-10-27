@@ -90,7 +90,7 @@
   top:0px;
   left:0px;
   background-color: #ffffff;
-  @include backface-visibility(hidden);
+  //@include backface-visibility(hidden);
   //opacity: 0.9999;
 }
 
@@ -102,6 +102,34 @@
   top:0;
   left:0;
   background-color: #126f4d;
+}
+
+.object-editor {
+  position:absolute;
+  margin:0 auto;
+  width:100%;
+  height:100%;
+  bottom:0;
+  left:0;
+  background-color: #126f4d;
+}
+
+#mydiv {
+  position: absolute;
+  top:250px;
+  left:250px;
+  z-index: 9;
+  background-color: #f1f1f1;
+  border: 1px solid #d3d3d3;
+  text-align: center;
+}
+
+#mydivheader {
+  padding: 10px;
+  cursor: move;
+  z-index: 10;
+  background-color: #2196F3;
+  color: #fff;
 }
 
 .choice-list {
@@ -335,11 +363,11 @@
   margin: 20px;
   color: #ffffff;
 
-  @include backface-visibility(hidden);
+  //@include backface-visibility(hidden);
 
-  &:hover {
-    background:rgba(255,255,255,0.1);
-  }
+  //&:hover {
+  //  background:rgba(255,255,255,0.1);
+  //}
 
 }
 

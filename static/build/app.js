@@ -1,4 +1,72 @@
 
+panoCenterHeading = null;
+panoCenterLatLon = null;
+
+arObject = null;
+imageBlobs = [];
+
+$('#edit-rotation').change(function() {
+  var value = $('input[name=rotation]').val();
+  arObject.rotation.y = Math.PI * (value / 180.0);
+});
+
+$('#edit-height').change(function() {
+  var value = $('input[name=height]').val();
+  arObject.position.y = value;
+});
+
+function myKeyPressFunction(event) {
+  // if(event.key = "a") {
+  //   alert("!");
+  // } else {
+  //   alert(event.key);
+  // }
+}
+
+// Make the DIV element draggable:
+dragElement(document.getElementById("mydiv"));
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (document.getElementById(elmnt.id + "header")) {
+    // if present, the header is where you move the DIV from:
+    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+  } else {
+    // otherwise, move the DIV from anywhere inside the DIV:
+    elmnt.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
 /**
  * Require the given path.
  *
@@ -410,7 +478,8 @@ Emitter.prototype.hasListeners = function(event){
 require.register("streetview/nav.js", function(exports, require, module){
 module.exports = Nav;
 
-var imageFolder = 'http://s3.amazonaws.com/urbanjungle/images2/'
+var imageFolder = 'assets/images/'
+  //http://s3.amazonaws.com/urbanjungle/images2/
 
 function Nav(){
 
@@ -446,7 +515,7 @@ p.createArrows = function(){
   var tex = THREE.ImageUtils.loadTexture( imageFolder + 'concrete.jpg' );
   tex.repeat.x = tex.repeat.y = 0.1;
 
-  markerGeo = new THREE.SphereGeometry(2,6,6);
+  markerGeo = new THREE.SphereGeometry(1,6,6);
   markerGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0,-2,5));
 
   var marker = new THREE.Mesh( markerGeo, new THREE.MeshBasicMaterial({color:0xff0000,visible:false}));
@@ -454,7 +523,7 @@ p.createArrows = function(){
   arrow.name = 'arrow';
   //shadows
   shadowTex = THREE.ImageUtils.loadTexture( imageFolder + 'arrow-shadow.png' );
-  var shadow = new THREE.Mesh( new THREE.PlaneGeometry(3,3,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));
+  var shadow = new THREE.Mesh( new THREE.PlaneGeometry(2,2,1,1), new THREE.MeshBasicMaterial({map:shadowTex,transparent:true}));
   shadow.rotation.x = -Math.PI*0.5;
   shadow.rotation.z = Math.PI;
   shadow.position.y = -2.3;
@@ -565,7 +634,7 @@ function PanoView(){
   this.scene.add(this.nav.container);
 
   this.mesh = null;
-  this.foliageContainer = null
+  this.foliageContainer = null;
 
   //this.grassBaseGeo = new THREE.SphereGeometry(2,4,4);
   this.grassBaseGeo = new THREE.PlaneGeometry(2,2,1,1);
@@ -588,6 +657,15 @@ function PanoView(){
   this.climbingBillboardGeo = new THREE.PlaneGeometry(2.6,3.8,1,1);
   this.grassBillboardGeo = new THREE.PlaneGeometry(4,4,1,1);
 
+  // var modelLoader = new THREE.GLTFLoader();
+
+  // modelLoader.load('scene.gltf', function(gltf) {
+  //   car = gltf.scene.children[0];
+  //   car.scale.set(0.5,0.5,0.5);
+  //   scene.add(gltf.scene);
+  //   animate();
+  // });
+
   this.init3D();
 
 }
@@ -603,9 +681,9 @@ p.generateNature = function(){
   }
 
   this.resetNature();
-  this.createEdgeFoliage();
-  this.createClimbingFoliages();
-  this.createPlants();
+  // this.createEdgeFoliage();
+  // this.createClimbingFoliages();
+  // this.createPlants();
 
   this.tree1.position.z = Math.random()*10-5;
   this.tree2.position.z = Math.random()*10-5;
@@ -775,7 +853,6 @@ p.createClimbingFoliages = function(){
 
 p.init3D = function(){
 
-
   this.renderer = new THREE.WebGLRenderer({alpha:true});
   this.renderer.autoClearColor = false;
   this.renderer.setClearColor(0xffffff,1);
@@ -820,12 +897,59 @@ p.init3D = function(){
 
   this.light = new THREE.DirectionalLight(0xffffff,0.8);
 
-  this.scene.add(this.light);
+  // this.scene.add(this.light);
 
-  this.scene.add( new THREE.AmbientLight(0x999999,0.2));
+  // this.scene.add( new THREE.AmbientLight(0x999999,0.2));
 
   this.foliageContainer = new THREE.Object3D();
   this.scene.add(this.foliageContainer);
+
+  var container = this.foliageContainer;
+  $('#deleteArObject').on('click', function() {
+    var index = container.children.indexOf(arObject);
+    imageBlobs = imageBlobs.slice(0, index - 1).concat(imageBlobs.slice(index, imageBlobs.length));
+    container.remove(arObject);
+  });
+
+  $('#addObjectToAr').on('click', function() {
+    var index = container.children.indexOf(arObject);
+    var imageBlob = imageBlobs[index];
+
+    var formData = new FormData();
+    formData.append('image', imageBlob);
+
+    var y = arObject.position.x;
+    var x = arObject.position.z;
+    var heading = panoCenterHeading * Math.PI / 180.0;
+    var lat = panoCenterLatLon.lat();
+    var lon = panoCenterLatLon.lng();
+    var xx = x * Math.cos(heading) +  y * Math.sin(heading);
+    var yy = - x * Math.sin(heading) +  y * Math.cos(heading);
+
+    var point = new google.maps.LatLng(lat, lon);
+    var dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
+    var angle = Math.atan2(xx, yy) * 180 / Math.PI;
+    var latLonResult = google.maps.geometry.spherical.computeOffset(point, dist, angle);
+
+    var debug = {
+      title: "test",
+      description: "test",
+      coordinate: {
+        altitude: arObject.position.y,
+        latitude: latLonResult.lat(),
+        longitude: latLonResult.lng()
+      }
+    };
+    var blob = new Blob([JSON.stringify(debug, null, 2)], {type: 'application/json'});
+    formData.append('metadata', blob)
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://artherapy.herokuapp.com/api/artobjects', true);
+    //localhost //http://192.168.0.248:7777/api/artobjects
+    xhr.onload = xhr.onerror = function () {
+      alert("Object successful loaded!");
+    };
+    xhr.send(formData);
+  });
 
   //ground
   var mossTile = THREE.ImageUtils.loadTexture( imageFolder + 'moss-tile.jpg' );
@@ -836,14 +960,14 @@ p.init3D = function(){
   this.ground = new THREE.Mesh( new THREE.PlaneGeometry(4000,4000,1,1), new THREE.MeshLambertMaterial({map:mossTile,ambient:0x000000}));
   this.ground.rotation.x = Math.PI*-0.5;
   this.ground.position.y = -20;
-  this.scene.add(this.ground);
+  // this.scene.add(this.ground);
 
   //tree
   var treeTex = THREE.ImageUtils.loadTexture( imageFolder + 'tree.png' );
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(12.5,15,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(40,0,5);
   tree.lookAt(this.camera.position.clone());
-  this.scene.add(tree);
+  // this.scene.add(tree);
 
   this.tree1 = tree;
 
@@ -852,14 +976,13 @@ p.init3D = function(){
   var tree = new THREE.Mesh( new THREE.PlaneGeometry(13,20,1,1), new THREE.MeshBasicMaterial({map:treeTex,side: THREE.DoubleSide,transparent:true}));
   tree.position.set(-40,0,0);
   tree.lookAt(this.camera.position.clone());
-  this.scene.add(tree);
+  // this.scene.add(tree);
 
   this.tree2 = tree;
 
   //this.controller.handleResize();
 
   this.container.appendChild( this.renderer.domElement );
-
 }
 
 p.setLinks = function( links, centerHeading ){
@@ -942,6 +1065,10 @@ p.onContainerMouseMove = function( event ) {
 }
 
 p.onContainerMouseUp = function( event ) {
+  if (event.x < 150 && event.y < 75) {
+    return;
+  }
+
   this.isUserInteracting = false;
 
   if( Date.now()- this.isUserInteractingTime < 300 ) {
@@ -1010,16 +1137,30 @@ p.onContainerTouchMove = function( event ) {
 
 p.onSceneClick = function(x,y){
 
+  if (!$('.streetview2').hasClass( 'inactive' )) {
+    $('.streetview2').addClass('inactive');
+    return;
+  }
+
   var vector = new THREE.Vector3(x, y, 0.5);
   var projector = new THREE.Projector();
   projector.unprojectVector(vector, this.camera);
 
   var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
 
-//test nav
+  //test nav
   var intersects = raycaster.intersectObjects(this.nav.markers);
   if (intersects.length > 0) {
     this.emit('panoLinkClicked', intersects[0].object.pano,intersects[0].object.description );
+    return;
+  }
+
+  intersects = raycaster.intersectObjects(this.foliageContainer.children);
+  if (intersects.length > 0) {
+    arObject = intersects[0].object;
+    $('input[name=rotation]').val(Math.round(arObject.rotation.y * 180 / Math.PI));
+    $('input[name=height]').val(Math.round(arObject.position.y));
+    $('.streetview2').removeClass('inactive');
     return;
   }
 
@@ -1030,10 +1171,8 @@ p.onSceneClick = function(x,y){
     var v = Math.asin(normalizedPoint.y) / Math.PI + 0.5;
 
     this.plotIn3D(intersects[0].point);
-    this.plotOnTexture(intersects[0].point);
-    //console.log('intersect: ' + intersects[0].point.x.toFixed(2) + ', ' + intersects[0].point.y.toFixed(2) + ', ' + intersects[0].point.z.toFixed(2) + ')');
+    // this.plotOnTexture(intersects[0].point);
   }
-
 }
 
 p.setDepthData = function( data ){
@@ -1156,7 +1295,7 @@ p.plotOnTexture = function(point){
   var y = Math.floor(v*MAP_HEIGHT);
 
   ctx.fillRect(x,y,1,1);
-  //this.mesh.material.uniforms.texture1.value.needsUpdate = true;
+  this.mesh.material.uniforms.texture1.value.needsUpdate = true;
 
 }
 
@@ -1188,62 +1327,54 @@ p.getPointData = function(point){
   return {
     distance: distance,
     normal: normal
+
   }
 
 }
 
-p.plotIn3D = function( point, forceType, extraScale ){
+  p.plotIn3D = function (point, forceType, extraScale) {
+    var newARObject;
 
-  var plant;
+    //get info from normalmap and depthmap
+    var pointData = this.getPointData(point);
+    var distanceToCamera = pointData.distance;
+    var pointInWorld = point.normalize().multiplyScalar(distanceToCamera);
 
-  //get info from normalmap and depthmap
-  var pointData = this.getPointData(point);
+    if( pointData.distance > 140) {
+      return;
+    }
 
-  var distanceToCamera = pointData.distance;
-  var pointInWorld = point.normalize().multiplyScalar(distanceToCamera);
-  var normalInWorld = pointData.normal;
+    var texture = new THREE.ImageUtils.loadTexture("assets/images/climbing.png");
+    var geometry = new THREE.PlaneGeometry(3, 2);
+    var material = new THREE.MeshBasicMaterial({map: texture, alphaTest: 0.9, side: THREE.DoubleSide});
+    var plane = new THREE.Mesh(geometry, material);
 
-  var up = new THREE.Vector3(0,-1,0);
+    newARObject = plane;
 
-  if( pointData.distance > 140 || pointData.distance < 7) {
-    return;
-  }
+    var container = this.foliageContainer;
+    var ptro = Painterro({
+      defaultSize: '300x200',
+      saveHandler: function (image, done) {
 
-  if( forceType === 'climb' ) {
+        material.map = new THREE.ImageUtils.loadTexture(image.asDataURL());
 
-    plant = this.createClimbingPlant();
+        newARObject.position.copy(pointInWorld);
 
-  }
-  else if( normalInWorld.y < -0.7 || forceType === 'ground') {
-    plant = this.createGrass({disableCracks:forceType === 'ground'});
+        container.add(newARObject);
+        imageBlobs.push(image.asBlob());
 
-  }
-  else {
-    plant = this.createWallPlant();
+        arObject = newARObject;
+        $('input[name=rotation]').val(Math.round(arObject.rotation.y * 180 / Math.PI));
+        $('input[name=height]').val(Math.round(arObject.position.y));
+        $('.streetview2').removeClass('inactive');
 
-    //make rotation
-
-    var v = plant.position.clone();
-    v.add( normalInWorld );
-    plant.lookAt(v);
-  }
-
-  if( extraScale ) {
-    plant.scale.multiplyScalar(extraScale);
-  }
-
-  //set position
-
-  plant.position.copy(pointInWorld);
-
-  if(forceType === 'ground') {
-    plant.position.y -= 0.4;
-  }
-
-  this.foliageContainer.add(plant);
-
-  return plant;
-
+        done(true);
+      },
+      onClose: function () {
+      }
+    })
+    ptro.show();
+    return newARObject;
 }
 
 p.createWallPlant = function(){
@@ -1364,10 +1495,10 @@ p.render = function(){
   this.renderer.clear();
   this.composer.reset();
 
-  this.mesh.visible = false;
-  this.foliageContainer.traverse( this.setVisibleHidden );
-  this.ground.visible = true;
-  this.composer.render( this.scene, this.camera );
+  // this.mesh.visible = false;
+  // this.foliageContainer.traverse( this.setVisibleHidden );
+  // this.ground.visible = true;
+  // this.composer.render( this.scene, this.camera );
 
   this.composer.reset();
   this.renderer.clear(false, true, false );
@@ -1378,14 +1509,14 @@ p.render = function(){
   this.composer.render( this.scene, this.camera );
 
 
-  this.composer.pass( this.dirtPass );
+  // this.composer.pass( this.dirtPass );
 
 
   if( this.fadeAmount ) {
-    this.composer.pass( this.blurPass, null, this.fadeAmount*50 );
+    // this.composer.pass( this.blurPass, null, this.fadeAmount*50 );
   }
 
-  this.composer.pass( this.bloomPass );
+  // this.composer.pass( this.bloomPass );
 
   this.composer.toScreen();
   //this.renderer.render(this.scene, this.camera);
@@ -1631,7 +1762,7 @@ var self = {};
 var _panoLoader = new GSVPANO.PanoLoader({zoom: 3});
 var _depthLoader = new GSVPANO.PanoDepthLoader();
 
-var defaultLatlng = new google.maps.LatLng(40.759101,-73.984406);
+var defaultLatlng = new google.maps.LatLng(47.506647, 19.065819);
 var currentPanoLocation = null;
 var draggingInstance;
 var mouse2d = new google.maps.Point();
@@ -1642,6 +1773,7 @@ var normalCanvas;
 var TALK_DEFAULT = 'Choose your location, pan around, and then pick me up!';
 
 var $streetview = $('.streetview');
+var $streetview2 = $('.streetview2');
 var $pegman = $('#pegman');
 var $pegmanCircle = $('.js-pegman-circle');
 var $map = $('#map');
@@ -1677,31 +1809,6 @@ $('#backToMap').on('click touchstart', function(){
 
   backToMap();
 
-})
-
-$('#choice-default-1').on('click', function( event ){
-  event.preventDefault();
-  var to = new google.maps.LatLng(40.759101,-73.984406)
-  map.panTo( to );
-})
-
-$('#choice-default-2').on('click', function(){
-  event.preventDefault();
-  var to = new google.maps.LatLng(37.7914908,-122.3977816)
-  map.panTo( to );
-})
-
-
-$('#choice-default-3').on('click', function(){
-  event.preventDefault();
-  var to = new google.maps.LatLng(59.3346806,18.0621834)
-  map.panTo( to );
-})
-
-
-$('#choice-location').on('click', function(){
-  event.preventDefault();
-  navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
 })
 
 $('.js-more-info').on('click', function(){
@@ -1742,6 +1849,7 @@ function backToMap() {
 
   function showMap() {
     $streetview.addClass('inactive');
+    $streetview2.addClass('inactive');
     draggingInstance.enable();
     $map.fadeIn();
     $intro.fadeIn();
@@ -1884,61 +1992,6 @@ function drawStreetViewTileToCanvas(){
   streetViewTileData = ctx.getImageData(0, 0, 256, 256).data;
 }
 
-
-
-/*
-
-var el = document.getElementById( 'myLocationButton' );
-el.addEventListener( 'click', function( event ) {
-  event.preventDefault();
-  navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
-}, false );
-
-  navigator.pointer = navigator.pointer || navigator.webkitPointer;
-
-  function lockPointer () {
-    if( navigator.pointer ) {
-      navigator.pointer.lock( container, function() {
-        console.log( 'Pointer locked' );
-      }, function() {
-        console.log( 'No pointer lock' );
-      } );
-    }
-  }
-
-  var el = document.getElementById( 'fullscreenButton' );
-  if( el ) {
-    el.addEventListener( 'click', function( e ) {
-      container.onwebkitfullscreenchange = function(e) {
-        lockPointer();
-        container.onwebkitfullscreenchange = function() {
-        };
-      };
-      container.onmozfullscreenchange = function(e) {
-        lockPointer();
-        container.onmozfullscreenchange = function() {
-        };
-      };
-      if( container.webkitRequestFullScreen ) container.webkitRequestFullScreen();
-      if( container.mozRequestFullScreen ) container.mozRequestFullScreen();
-      e.preventDefault();
-    }, false );
-  }
-
-  */
-
-
-function geoSuccess( position ) {
-  pegmanTalk('I can see you!',2)
-  var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
-  map.panTo( currentLocation );
-
-}
-
-function geoError( message ) {
-  pegmanTalk( "I can't see where you are" , 4 );
-}
-
 var marker;
 
 var styleArray = [
@@ -2015,32 +2068,6 @@ var map = new google.maps.Map( document.getElementById( 'map' ), myOptions );
 
 var streetViewLayer = new google.maps.StreetViewCoverageLayer();
 
-var geocoder = new google.maps.Geocoder();
-
-var el = document.getElementById( 'searchButton' );
-el.addEventListener( 'click', function( event ) {
-  event.preventDefault();
-  findAddress( document.getElementById("address").value );
-}, false );
-
-
-//document.getElementById("address").focus();
-
-function findAddress( address ) {
-
-  geocoder.geocode( { 'address': address}, function(results, status) {
-    if (status == google.maps.GeocoderStatus.OK) {
-      map.setCenter(results[0].geometry.location);
-      pegmanTalk("Found the place, let's go!",3);
-    } else {
-      pegmanTalk("Could not find the location",5);
-      //showProgress( false );
-    }
-  });
-}
-
-
-
 
 _panoLoader.onPanoramaLoad = function() {
 
@@ -2057,6 +2084,8 @@ _panoLoader.onPanoramaLoad = function() {
 
   currentPanoLocation = this.panoLocation.latLng;
 
+  panoCenterHeading = this.centerHeading;
+  panoCenterLatLon = this.panoLocation.latLng;
 };
 
 _panoLoader.onNoPanoramaData = function(){
@@ -2076,6 +2105,34 @@ _depthLoader.onDepthLoad = function( buffers ) {
   if( !depthCanvas ) {
     depthCanvas = document.createElement("canvas");
   }
+
+  // // TEST SHOW DEPTH MAP
+  // var canvas1 = pano.mesh.material.uniforms.texture0.value.image;
+  // var width1 = canvas1.width;
+  // var height1 = canvas1.height;
+  // var context1 = canvas1.getContext('2d');
+  //
+  // var image1 = context1.getImageData(0, 0, width1, height1);
+  // var xx, yy;
+  // var scaleX = width1 / buffers.width;
+  // var scaleY = height1 / buffers.height;
+  //
+  //
+  // for(y=0; y<height1; ++y) {
+  //   for(x=0; x<width1; ++x) {
+  //     xx = Math.ceil(x  / scaleX);
+  //     yy = Math.ceil(y  / scaleY);
+  //     c = buffers.depthMap[yy*buffers.width + xx] / 50 * 255;
+  //     image1.data[4*(y*width1 + x)    ] = image1.data[4*(y*width1 + x)    ] * 0.2 + c * 0.8;
+  //     image1.data[4*(y*width1 + x) + 1] = image1.data[4*(y*width1 + x)  + 1 ] * 0.2 + c * 0.8;
+  //     image1.data[4*(y*width1 + x) + 2] = image1.data[4*(y*width1 + x)  + 2 ] * 0.2 + c * 0.8;
+  //     image1.data[4*(y*width1 + x) + 3] = 255;
+  //   }
+  // }
+  //
+  // context1.putImageData(image1, 0, 0);
+  //
+  // pano.mesh.material.uniforms.texture0.value.image = canvas1;
 
   context = depthCanvas.getContext('2d');
 

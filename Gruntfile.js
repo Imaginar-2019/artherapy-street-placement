@@ -14,7 +14,7 @@ function server() {
   app.use(express.static(path.resolve(path.join(__dirname, 'static'))));
 
   app.get('*', function(request, response) {
-    response.sendfile(path.join(__dirname, 'static/index.html'));
+    response.sendFile(path.join(__dirname, 'static/index.html'));
   });
 
   app.listen(5010);
@@ -95,7 +95,7 @@ module.exports = function(grunt) {
           'static/app/**/*.js',
           'static/**/*.glsl'
         ],
-        tasks: ['component_build:dev']
+        tasks: ['componentbuild:dev']
       }
     },
 
@@ -136,7 +136,7 @@ module.exports = function(grunt) {
     },
 
     // Build component.js module.
-    component_build: {
+    componentbuild: {
       dev: _.defaults({}, defaultComponentOpts),
       prod: _.defaults({
         sourceUrls: false,
@@ -181,6 +181,7 @@ module.exports = function(grunt) {
 
   });
 
+  grunt.loadNpmTasks('grunt-component-build');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -190,7 +191,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-compass');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
-  grunt.loadNpmTasks('grunt-component-build');
   grunt.loadNpmTasks('grunt-env');
   grunt.loadNpmTasks('grunt-preprocess');
   grunt.loadNpmTasks('grunt-usemin');
@@ -202,7 +202,7 @@ module.exports = function(grunt) {
     'env:prod',
     //'clean:prod',
     'compass:prod',
-    'component_build:prod',
+    'componentbuild:prod',
     'copy:prod',
     'preprocess',
     'useminPrepare',
@@ -212,15 +212,15 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('dev', function(opt) {
-    if (opt === 'server') {
+    // if (opt === 'server') {
       grunt.log.ok('Start server: http://localhost:5010');
       server();
-    }
+    // }
 
     grunt.task.run([
       'env:dev',
       'compass:dev',
-      'component_build:dev',
+      'componentbuild:dev',
       'watch'
     ]);
   });
